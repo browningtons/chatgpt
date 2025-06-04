@@ -1,5 +1,6 @@
 import os
 import datetime
+
 try:
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
@@ -60,7 +61,7 @@ def send_sms(to: str, body: str):
 
     now = datetime.datetime.now()
     user_phone = os.environ.get("USER_PHONE")
-    
+
     for rec in records:
         name = rec.get("name") or rec.get("Name")
         birthday_str = rec.get("birthday") or rec.get("Birthday")
