@@ -11,9 +11,6 @@ This repository contains a simple Python script (`birthday_reminder.py`) that ch
 ## Setup
 
 1. **Install Dependencies**
-   ```bash
-   pip install gspread oauth2client twilio apscheduler
-   ```
 
 2. **Google Sheets Credentials**
    - Create a Google service account and download the credentials JSON file.
@@ -32,9 +29,6 @@ This repository contains a simple Python script (`birthday_reminder.py`) that ch
 
 5. **Running the Script**
    The script uses `apscheduler` to run daily at 7:00 AM. Launch it with:
-   ```bash
-   python birthday_reminder.py
-   ```
 
 ## Notes
 

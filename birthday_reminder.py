@@ -1,7 +1,5 @@
 import os
 import datetime
-from typing import List
-
 try:
     import gspread
     from oauth2client.service_account import ServiceAccountCredentials
@@ -31,7 +29,6 @@ def fetch_gift_ideas(person_name: str) -> List[str]:
     # Here we return a static list due to environment limits.
     return STATIC_GIFT_IDEAS
 
-
 def get_sheet_records() -> List[dict]:
     """Fetch records from the Google Sheet."""
     sheet_id = os.environ.get("SHEET_ID")
@@ -51,27 +48,19 @@ def get_sheet_records() -> List[dict]:
 
 
 def send_sms(to: str, body: str):
-    """Send an SMS message using Twilio."""
-    if Client is None:
-        raise RuntimeError("twilio is required to send SMS")
-    account_sid = os.environ["TWILIO_ACCOUNT_SID"]
-    auth_token = os.environ["TWILIO_AUTH_TOKEN"]
-    from_phone = os.environ["TWILIO_FROM_PHONE"]
 
     client = Client(account_sid, auth_token)
     client.messages.create(to=to, from_=from_phone, body=body)
 
-
-def check_birthdays():
     """Check the sheet for upcoming birthdays and send reminders."""
     try:
         records = get_sheet_records()
     except Exception as exc:
-        print(f"Error fetching sheet records: {exc}")
         return
 
     now = datetime.datetime.now()
     user_phone = os.environ.get("USER_PHONE")
+    
     for rec in records:
         name = rec.get("name") or rec.get("Name")
         birthday_str = rec.get("birthday") or rec.get("Birthday")
@@ -81,35 +70,15 @@ def check_birthdays():
         try:
             bday = datetime.datetime.strptime(birthday_str, "%Y-%m-%d")
         except ValueError:
-            print(f"Invalid date format for {name}: {birthday_str}")
-            continue
-
-        # Normalize year to current year for comparison
-        upcoming = bday.replace(year=now.year)
-        if upcoming < now:
-            upcoming = upcoming.replace(year=now.year + 1)
-        days_until = (upcoming.date() - now.date()).days
 
         if days_until == 14 and user_phone:
             ideas = fetch_gift_ideas(name)
             body = f"Reminder: {name}'s birthday is on {upcoming:%Y-%m-%d}.\n" + "\n".join(ideas)
             try:
                 send_sms(user_phone, body)
-            except Exception as exc:
-                print(f"Error sending SMS: {exc}")
-
-        if days_until == 0 and phone:
-            message = f"Happy Birthday, {name}!"
-            run_time = datetime.datetime.combine(upcoming.date(), datetime.time(7, 30))
-            scheduler.add_job(send_sms, "date", run_date=run_time, args=[phone, message])
-
 
 scheduler = BlockingScheduler()
 # Run check_birthdays every day at 7am
 scheduler.add_job(check_birthdays, "cron", hour=7, minute=0)
 
 if __name__ == "__main__":
-    try:
-        scheduler.start()
-    except (KeyboardInterrupt, SystemExit):
-        pass
