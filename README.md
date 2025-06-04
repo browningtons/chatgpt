@@ -1,21 +1,14 @@
 # Birthday Reminder Tool
 
-This repository contains a Python script (`birthday_reminder.py`) that checks a Google Sheet for upcoming birthdays and sends SMS notifications via Twilio.
-
 ## Features
 
 - Reads a Google Sheet of names, birthdays, and phone numbers.
 - Sends a reminder 14 days before a birthday with a short list of gift ideas.
 - Automatically schedules a "Happy Birthday" message to be sent at 7:30 AM on the birthday.
-- Supports a mock mode for testing without sending real SMS.
-- Optionally prompt for a custom birthday message to send on the big day.
 
 ## Setup
 
 1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
 
 2. **Environment Variables**
    Copy `.env.example` to `.env` and fill in your credentials. The script uses [python-dotenv](https://github.com/theskumar/python-dotenv) to load these variables automatically.
@@ -35,12 +28,10 @@ This repository contains a Python script (`birthday_reminder.py`) that checks a 
      ```bash
      python birthday_reminder.py
      ```
-
 5. **Tests**
    ```bash
    pytest -q
    ```
-
 ## Notes
 
 - The gift ideas list is static by default. You can modify the `fetch_gift_ideas` function to integrate with your preferred shopping API.
