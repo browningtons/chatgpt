@@ -1,0 +1,6 @@
+gspread
+oauth2client
+twilio
+apscheduler
+python-dotenv
+pytest
