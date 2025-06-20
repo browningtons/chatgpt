@@ -10,11 +10,6 @@
 
 1. **Install Dependencies**
 
-2. **Environment Variables**
-   Copy `.env.example` to `.env` and fill in your credentials. The script uses [python-dotenv](https://github.com/theskumar/python-dotenv) to load these variables automatically.
-   You can also set `CUSTOM_MESSAGES_FILE` to control where custom birthday messages are stored. Set `MOCK_MODE=true` to print messages instead of sending them via Twilio.
-   The repository includes a `.gitignore` so that your `.env` file won't be committed by accident.
-
 3. **Google Sheets Credentials**
    - Create a Google service account and download the credentials JSON file.
    - Share your Google Sheet with the service account email.
