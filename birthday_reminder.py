@@ -1,5 +1,7 @@
 import os
 import datetime
+import smtplib
+from email.message import EmailMessage
 
 try:
     import gspread
@@ -14,52 +16,38 @@ except ImportError:
     Client = None
 
 from apscheduler.schedulers.blocking import BlockingScheduler
-
-# Static list of gift ideas used if network access is unavailable.
-STATIC_GIFT_IDEAS = [
-    "Gift idea 1 - https://example.com/product1",
-    "Gift idea 2 - https://example.com/product2",
-    "Gift idea 3 - https://example.com/product3",
-    "Gift idea 4 - https://example.com/product4",
-    "Gift idea 5 - https://example.com/product5",
-]
-
-def fetch_gift_ideas(person_name: str) -> List[str]:
-    """Return a list of gift idea strings."""
-    # In a real setup, this might query an online store's API.
-    # Here we return a static list due to environment limits.
-    return STATIC_GIFT_IDEAS
-
-    client = Client(account_sid, auth_token)
     client.messages.create(to=to, from_=from_phone, body=body)
 
-    """Check the sheet for upcoming birthdays and send reminders."""
-    try:
-        records = get_sheet_records()
-    except Exception as exc:
+def send_email(to: str, subject: str, body: str):
+    """Send an email using SMTP."""
+    smtp_server = os.environ.get("SMTP_SERVER")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    smtp_user = os.environ.get("SMTP_USERNAME")
+    smtp_pass = os.environ.get("SMTP_PASSWORD")
+    from_addr = os.environ.get("EMAIL_FROM")
+    if not all([smtp_server, smtp_user, smtp_pass, from_addr]):
+        logger.error("SMTP credentials are not fully configured")
         return
-
-    now = datetime.datetime.now()
-    user_phone = os.environ.get("USER_PHONE")
-
-    for rec in records:
-        name = rec.get("name") or rec.get("Name")
-        birthday_str = rec.get("birthday") or rec.get("Birthday")
-        phone = rec.get("phone") or rec.get("Phone")
-        if not name or not birthday_str:
-            continue
-        try:
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = from_addr
+    msg["To"] = to
+    msg.set_content(body)
+        with smtplib.SMTP(smtp_server, smtp_port) as smtp:
+            smtp.starttls()
+            smtp.login(smtp_user, smtp_pass)
+            smtp.send_message(msg)
+        logger.error("Error sending email: %s", exc)
+def check_birthdays():
             bday = datetime.datetime.strptime(birthday_str, "%Y-%m-%d")
         except ValueError:
 
-        if days_until == 14 and user_phone:
-            ideas = fetch_gift_ideas(name)
-            body = f"Reminder: {name}'s birthday is on {upcoming:%Y-%m-%d}.\n" + "\n".join(ideas)
-            try:
-                send_sms(user_phone, body)
+        if days_until in (14, 7) and user_phone:
+            body = f"Reminder: {name}'s birthday is on {upcoming:%Y-%m-%d}."
 
-scheduler = BlockingScheduler()
-# Run check_birthdays every day at 7am
-scheduler.add_job(check_birthdays, "cron", hour=7, minute=0)
-
-if __name__ == "__main__":
+        if days_until == 0 and rec.get("email"):
+            subject = f"Happy Birthday, {name}!"
+            body = f"Wishing you a wonderful birthday, {name}!"
+            scheduler.add_job(send_email, "date", run_date=run_time, args=[rec.get("email"), subject, body])
+            logger.info("Scheduled birthday email for %s at %s", name, run_time)
+        check_birthdays()
